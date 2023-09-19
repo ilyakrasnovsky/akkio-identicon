@@ -39,17 +39,23 @@ def regular_hash() -> None:
 def name_to_pixel_grid(name: str) -> np.ndarray:
   hashed_name = hashlib.md5(name.encode(encoding='utf-8')).hexdigest()
   ret = np.zeros((8,8))
-  for i, c in enumerate(hashed_name):
+  for i in range(16):
     # decimal representation of each hex char in the hashed string, in [0, 16)
-    d = int(c, base=16)
-    # d1 = int(hashed_name)
-    
-    val, mirror_val = d, d
-    if (d % 2 != 0):
-      val, mirror_val = d, d
+    d1 = int(hashed_name[i], base=16)
+    d2 = int(hashed_name[i + 16], base=16)
 
-    ret[i // 8][i % 8] = val
-    ret[(63-i) // 8][(63-i) % 8] = mirror_val
+    # color in d1 (after conversion to (i,j) via row-major order) only if d2 (shifted 16 indices) is even
+    # this condenses the information
+    val = d1 if d2 % 2 == 0 else None
+
+    # source (top left quadrant)
+    ret[i // 4][i % 4] = val
+    # diagonal mirror (bottom right quadrant)
+    ret[7-(i // 4)][7-(i % 4)] = val
+    # vertical mirror (bottom left quadrant)
+    ret[7-(i // 4)][i % 4] = val
+    # horizontal mirror (top right quadrant)
+    ret[i // 4][7-(i % 4)] = val
 
   return ret
 
@@ -69,7 +75,7 @@ def md5_hash() -> None:
   # print(hashlib.md5(b"Jon").hexdigest())
 
 if __name__ == "__main__":
-  show_identicon(pixel_grid=name_to_pixel_grid(name="John  h"))
+  show_identicon(pixel_grid=name_to_pixel_grid(name="e28rnc288 c3"))
   # plt_test()
   # regular_hash()
   # hexdigest produces a 128 bit value. There will be 32 hex numbers (4 bits each)
